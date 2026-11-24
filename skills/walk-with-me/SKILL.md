@@ -50,45 +50,59 @@ If your harness can run subagents or teammates, use them where they make the exp
 
 Keep their output behind the scenes. Use what they find to sharpen the current fragment's explanation, and don't pass on a dump of everything they learned. For a small scope, don't spawn anything. Read it yourself.
 
-## 3. Present one fragment
+## 3. Present one fragment, explained in place
 
-Each turn presents exactly one fragment and ends with a short prompt. Use this shape:
+Each turn presents exactly one fragment and ends with a short prompt.
+
+Put the explanation inside the content, not in a block after it. Cut the fragment into small pieces at natural seams: a statement, a condition, a call, or a sentence or clause of prose. Show each piece verbatim, with a short note directly below it. Each note then sits next to what it describes, so the reader never has to look back up to work out what a paragraph refers to. Read top to bottom, the pieces make up the whole fragment, in order. This also reads better: the content and the commentary take turns, rather than a wall of code followed by a wall of text.
+
+Use this shape:
 
 ````markdown
 ### Fragment 3 of 9 · Backoff calculation
-`src/net/client.ts:42-51`
+`src/net/client.ts:42-47`
 
 ```ts
-<the fragment, verbatim>
+const exp = base * 2 ** attempt;
 ```
+Exponential backoff: each retry waits twice as long, so a struggling server gets room to recover quickly.
 
-<the explanation>
+```ts
+const delay = Math.min(exp, cap);
+```
+The cap keeps waits bounded. Without it, ten failures would already mean a wait of minutes.
+
+```ts
+return delay / 2 + Math.random() * (delay / 2);
+```
+This is "equal jitter", a name AWS popularised. Randomising half the wait stops many clients from retrying in lockstep.
+
+**Overall:** a textbook retry policy. One thing to question: `attempt` is never reset after a success.
 
 ---
 **Next?** next · deeper · ask a question · jump to … · stop
 ````
 
-**Showing the fragment**
+**The pieces**
 
-- Quote it exactly as it currently is. Re-read the file before each fragment, because the user may be editing it while you walk. Never paraphrase, trim, or "clean up" the fragment you're showing.
-- Code goes in a fenced block with the language tag. Put the location (`path:start-end`) in the header so the user can click or jump to it.
-- Prose goes in a blockquote, with its location given as the section heading plus paragraph number, or as the page. To draw the eye to the phrase that matters most, **bold it inside the quote** and say that the emphasis is yours.
-- If the fragment only makes sense next to the line before or after it, include that line and say it's there for context.
+- Quote every piece exactly as it currently is. Re-read the file before each fragment, because the user may be editing it while you walk. Never paraphrase, trim, reformat, or add comments to the content.
+- Code goes in fenced blocks with the language tag. Put the location (`path:start-end`) once, in the header, so the user can click or jump to it.
+- Prose pieces go in blockquotes. To draw the eye to the phrase that matters, **bold it inside the quote**, and say once that the emphasis is yours.
+- Not every line needs a note. If a piece has nothing worth saying, merge it with its neighbour. A fragment of one to three lines can stay as a single piece.
 
-**The explanation**
+**The notes**
 
-Answer the user's question for this fragment. Aim for depth over coverage, and drop any of the angles below that don't apply:
-
-- **What it does**: briefly, and only as much as the "why" needs. The user can read the fragment, so don't narrate it line by line.
-- **Why it is this way**: the reasoning, the constraint it answers to, the trade-off it makes, and the obvious alternative that wasn't chosen and why.
-- **Roots**: where the idea comes from in the wider field. That could be an algorithm, a design pattern, a standard or RFC, a legal or academic convention, or a historical accident that stuck.
-- **Idiom**: whether this is the normal way to do it in this language, framework, industry, or genre, or a departure from the norm. A reader who knows the idiom reads the fragment differently from one who doesn't.
-- **Connections**: how it ties back to fragments already covered ("this is the counter we initialised in fragment 1") and what it sets up. Hint at what comes later; don't explain it yet.
-- **What to notice**: a subtlety, a smell, a likely bug, or an assumption worth questioning, if there is one. Be candid. Walking with someone includes saying "this part looks wrong to me."
-
-Separate evidence from inference. If a commit message, comment, issue, or citation says why something was done, cite it (`git log -L` and `git blame` are often worth running for code). If you're reasoning from the code or text itself, say so ("most likely because…"). Don't present a guess as the author's intent.
-
-Match the depth to the user. Use the vocabulary they use and the expertise they've shown. When a term outside their field is needed, give a short definition.
+- Keep each note simple and short, one to three sentences. Write plainly and warmly, as if you're sitting beside the user. If a term needs defining, define it in a few words.
+- Most notes say one thing. Pick whichever matters most for that piece:
+  - **Why it is this way**: the reason, the constraint, the trade-off, or the alternative that wasn't chosen.
+  - **Roots**: the pattern, algorithm, standard, paper, or convention it comes from.
+  - **Idiom**: whether this is the normal way to do it in this language or field, or a departure from it.
+  - **Connections**: how it ties to an earlier fragment ("the counter from fragment 1").
+  - **What to notice**: a subtlety, a likely bug, or an assumption worth questioning. Be candid about these.
+- Don't narrate what the content plainly says. The user can read it. Explain what they can't see.
+- Aim every note at the user's question from step 1.
+- Separate evidence from inference. If a commit message, comment, issue, or citation says why something was done, cite it briefly (`git log -L` and `git blame` are often worth running for code). If you're reasoning from the code or text itself, say so ("most likely because…").
+- Close with an **Overall** line only when something spans the whole fragment, such as a thread through it or a concern about it. Otherwise leave it out.
 
 ## 4. Wait, then respond
 
@@ -99,7 +113,7 @@ Use a plain-text prompt here, not a structured question dialog. A dialog can cov
 Take the user's reply in whatever words they use:
 
 - **next / yes / go on / an empty-ish reply**: present the next fragment.
-- **deeper**: stay on this fragment and go one level down. That might be the history, a worked example, the alternative implementation, or tracing a call into another file. Then prompt again.
+- **deeper**: stay on this fragment and go one level down. That might be the history, a worked example, the alternative implementation, or tracing a call into another file. Use the same in-place style, then prompt again.
 - **a question**: answer it in the context of the current fragment, then prompt again. Don't move on until they ask to.
 - **back / jump to X / skip**: go where they ask. Update the fragment count if the route changes.
 - **change of focus**: if the question or scope shifts mid-walk, re-plan the remaining route and show the new route in one or two lines.
