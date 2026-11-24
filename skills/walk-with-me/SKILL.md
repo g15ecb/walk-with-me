@@ -50,59 +50,88 @@ If your harness can run subagents or teammates, use them where they make the exp
 
 Keep their output behind the scenes. Use what they find to sharpen the current fragment's explanation, and don't pass on a dump of everything they learned. For a small scope, don't spawn anything. Read it yourself.
 
-## 3. Present one fragment, explained in place
+## 3. Present one fragment, annotated in place
 
 Each turn presents exactly one fragment and ends with a short prompt.
 
-Put the explanation inside the content, not in a block after it. Cut the fragment into small pieces at natural seams: a statement, a condition, a call, or a sentence or clause of prose. Show each piece verbatim, with a short note directly below it. Each note then sits next to what it describes, so the reader never has to look back up to work out what a paragraph refers to. Read top to bottom, the pieces make up the whole fragment, in order. This also reads better: the content and the commentary take turns, rather than a wall of code followed by a wall of text.
+The notes go inside the material, right next to what they describe, in a form that suits the material. Think of how a person annotates by hand. In code, you write comments in the margin. On paper, you highlight a phrase and stick a note beside it. Annotations should be visually distinct from the material, so the user can always tell yours from the author's, while still sitting comfortably within it. Make full use of what your output can render, such as syntax-highlighted code blocks, blockquotes, and bold, so the result is pleasant to read.
 
-Use this shape:
+### Source code and config: notes as comments
+
+Show the fragment in one fenced block with the right language tag, so it gets syntax highlighting. Put your notes inside the block as comments in that language's own syntax. The highlighter then sets them off from the code, much as margin notes stand apart from print.
 
 ````markdown
 ### Fragment 3 of 9 · Backoff calculation
-`src/net/client.ts:42-47`
+`src/net/client.ts:42-44`
 
 ```ts
+// ◆ Exponential backoff: each retry waits twice as long,
+// ◆ giving a struggling server room to recover.
 const exp = base * 2 ** attempt;
-```
-Exponential backoff: each retry waits twice as long, so a struggling server gets room to recover quickly.
 
-```ts
+// ◆ The cap keeps waits bounded. Ten failures would
+// ◆ otherwise mean a wait of minutes.
 const delay = Math.min(exp, cap);
-```
-The cap keeps waits bounded. Without it, ten failures would already mean a wait of minutes.
 
-```ts
+// ◆ "Equal jitter" (a name AWS popularised): randomising half
+// ◆ the wait stops many clients retrying in lockstep.
 return delay / 2 + Math.random() * (delay / 2);
 ```
-This is "equal jitter", a name AWS popularised. Randomising half the wait stops many clients from retrying in lockstep.
 
-**Overall:** a textbook retry policy. One thing to question: `attempt` is never reset after a success.
+**Overall:** a textbook retry policy, but `attempt` is never reset after a success.
 
 ---
 **Next?** next · deeper · ask a question · jump to … · stop
 ````
 
-**The pieces**
+- **Mark every note with `◆`** right after the comment opener. The author's own comments then stay distinguishable from yours, and you can discuss theirs too.
+- **Use the language's comment syntax**: `//` for C-family, Go, Rust, JS/TS, Java, and Kotlin; `#` for Python, shell, Ruby, YAML, and TOML; `--` for SQL, Haskell, and Lua; `<!-- ◆ … -->` for HTML, XML, and Markdown source; `/* ◆ … */` for CSS; `;` for Lisp and assembly; `%` for LaTeX and Erlang. For formats with no comments, such as JSON, use the `jsonc` tag and `//`.
+- **Put a note on the lines above the code it explains**, the way a docstring sits above a function. A very short note about one line can go at the end of that line instead: `retries: 3  # ◆ matches the SLA's 3-attempt budget`.
+- **Keep the code itself verbatim**: no edits, trimming or reformatting. Re-read the file before each fragment, because the user may be editing it while you walk. You may add blank lines between annotated pieces for breathing room. Wrap notes at about 80 columns so the block doesn't scroll sideways.
+- **To point at a specific spot**, use a trailing arrow note: `if (n <= 0) return;  // ◆ ← this guard is the whole fix`.
 
-- Quote every piece exactly as it currently is. Re-read the file before each fragment, because the user may be editing it while you walk. Never paraphrase, trim, reformat, or add comments to the content.
-- Code goes in fenced blocks with the language tag. Put the location (`path:start-end`) once, in the header, so the user can click or jump to it.
-- Prose pieces go in blockquotes. To draw the eye to the phrase that matters, **bold it inside the quote**, and say once that the emphasis is yours.
-- Not every line needs a note. If a piece has nothing worth saying, merge it with its neighbour. A fragment of one to three lines can stay as a single piece.
+### Prose and documents: highlights and sticky notes
 
-**The notes**
+Quote the fragment a sentence or clause at a time in blockquotes, which act as the page. **Bold the phrase that matters**, which acts as the highlighter. Pin a sticky note directly underneath it: a line starting with 📌, in italics, outside the quote.
 
-- Keep each note simple and short, one to three sentences. Write plainly and warmly, as if you're sitting beside the user. If a term needs defining, define it in a few words.
-- Most notes say one thing. Pick whichever matters most for that piece:
+```markdown
+### Fragment 2 of 6 · The consistency guarantee
+`docs/design.md` · §3.1, ¶2
+
+> Writes are acknowledged once **a majority of replicas** have persisted them.
+
+📌 *A majority quorum. Any two majorities overlap, so a later majority read always sees the write. This is the core idea behind Paxos and Raft.*
+
+> Reads may be served by **any replica**, so clients can observe stale values.
+
+📌 *Here is the trade-off: reads skip the quorum for speed and give up the guarantee above.*
+
+---
+**Next?** next · deeper · ask a question · jump to … · stop
+```
+
+- Say once, at the start of the walk, that the bold emphasis is yours.
+- A sentence with nothing worth saying stays in the quote without a note. Merge it with its neighbour.
+- Tables, lists, and other structured content can be quoted as they are, with sticky notes after the rows or items they concern.
+
+### Other material
+
+For anything else, such as diffs, logs, math, data, or diagrams, follow the same principle. Use the most fitting rendering available, such as `diff` blocks for diffs or a fenced block with the right tag for logs. Put the note next to the thing it describes. Keep notes visibly distinct from the material.
+
+### What the notes say
+
+- **Keep them simple and short**: one to three sentences, written plainly and warmly, as if you're sitting beside the user. If a term needs defining, define it in a few words.
+- **Most notes say one thing.** Pick whichever matters most for that piece:
   - **Why it is this way**: the reason, the constraint, the trade-off, or the alternative that wasn't chosen.
   - **Roots**: the pattern, algorithm, standard, paper, or convention it comes from.
   - **Idiom**: whether this is the normal way to do it in this language or field, or a departure from it.
   - **Connections**: how it ties to an earlier fragment ("the counter from fragment 1").
   - **What to notice**: a subtlety, a likely bug, or an assumption worth questioning. Be candid about these.
-- Don't narrate what the content plainly says. The user can read it. Explain what they can't see.
-- Aim every note at the user's question from step 1.
-- Separate evidence from inference. If a commit message, comment, issue, or citation says why something was done, cite it briefly (`git log -L` and `git blame` are often worth running for code). If you're reasoning from the code or text itself, say so ("most likely because…").
-- Close with an **Overall** line only when something spans the whole fragment, such as a thread through it or a concern about it. Otherwise leave it out.
+- **Don't narrate what the content plainly says.** The user can read it. Explain what they can't see.
+- **Not every line needs a note.** Annotate where there's something worth saying.
+- **Aim every note at the user's question** from step 1.
+- **Separate evidence from inference.** If a commit message, comment, issue, or citation says why something was done, cite it briefly (`git log -L` and `git blame` are often worth running for code). If you're reasoning from the code or text itself, say so ("most likely because…").
+- **Add an Overall line only when it's needed.** Close with one only when something spans the whole fragment, such as a thread running through it or a concern about it. Otherwise leave it out.
 
 ## 4. Wait, then respond
 
@@ -113,7 +142,7 @@ Use a plain-text prompt here, not a structured question dialog. A dialog can cov
 Take the user's reply in whatever words they use:
 
 - **next / yes / go on / an empty-ish reply**: present the next fragment.
-- **deeper**: stay on this fragment and go one level down. That might be the history, a worked example, the alternative implementation, or tracing a call into another file. Use the same in-place style, then prompt again.
+- **deeper**: stay on this fragment and go one level down. That might be the history, a worked example, the alternative implementation, or tracing a call into another file. Use the same annotated style, then prompt again.
 - **a question**: answer it in the context of the current fragment, then prompt again. Don't move on until they ask to.
 - **back / jump to X / skip**: go where they ask. Update the fragment count if the route changes.
 - **change of focus**: if the question or scope shifts mid-walk, re-plan the remaining route and show the new route in one or two lines.
