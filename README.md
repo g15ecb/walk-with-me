@@ -1,0 +1,39 @@
+# walk-with-me
+
+An agent skill for studying code, documents, specs, or any other material **one fragment at a time**.
+
+Say *"walk with me"*. The agent looks at what you're working on and asks what to focus on. It then shows one fragment at a time, verbatim and highlighted, and explains why that fragment is the way it is: the logic, its roots in the wider field, and the idioms it follows. After each fragment it waits for you to say *next*, *deeper*, ask a question, jump elsewhere, or stop.
+
+## Install
+
+With the [skills](https://skills.sh) CLI:
+
+```sh
+npx skills add g15ecb/walk-with-me
+```
+
+The repository is private, so your git credentials need read access to it. The CLI clones over git.
+
+To install from a local checkout:
+
+```sh
+npx skills add ./path/to/walk-with-me
+```
+
+## Use
+
+```
+walk with me
+walk me through src/scheduler/
+step through section 3 of docs/design.md with me, I want to see whether the argument holds
+```
+
+During a walk, reply with `next`, `deeper`, a question, `back`, `jump to …`, or `stop`.
+
+## Layout
+
+```
+skills/
+  walk-with-me/
+    SKILL.md
+```
