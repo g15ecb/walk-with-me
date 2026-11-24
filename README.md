@@ -9,7 +9,7 @@ Say *"walk with me"*. The agent looks at what you're working on and asks what to
 With the [skills](https://skills.sh) CLI:
 
 ```sh
-npx skills add g15ecb/walk-with-me
+npx skills add https://github.com/g15ecb/walk-with-me
 ```
 
 To install from a local checkout:
