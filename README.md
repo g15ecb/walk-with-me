@@ -12,8 +12,6 @@ With the [skills](https://skills.sh) CLI:
 npx skills add g15ecb/walk-with-me
 ```
 
-The repository is private, so your git credentials need read access to it. The CLI clones over git.
-
 To install from a local checkout:
 
 ```sh
