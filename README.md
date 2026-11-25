@@ -26,7 +26,7 @@ walk me through src/scheduler/
 step through section 3 of docs/design.md with me, I want to see whether the argument holds
 ```
 
-During a walk, reply with `next`, `deeper`, a question, `back`, `jump to …`, or `stop`.
+After each fragment, you choose what to do next from a set of options: next, go deeper, back, or stop. You can also type a question. If an agent has no options picker, reply in text instead (`next`, `deeper`, a question, `back`, `jump to …`, or `stop`).
 
 ## Layout
 

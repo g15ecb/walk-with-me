@@ -52,7 +52,7 @@ Keep their output behind the scenes. Use what they find to sharpen the current f
 
 ## 3. Present one fragment, annotated in place
 
-Each turn presents exactly one fragment and ends with a short prompt.
+Each turn presents exactly one fragment and then asks where to go next (step 4).
 
 The notes go inside the material, right next to what they describe, in a form that suits the material. Think of how a person annotates by hand. In code, you write comments in the margin. On paper, you highlight a phrase and stick a note beside it. Annotations should be visually distinct from the material, so the user can always tell yours from the author's, while still sitting comfortably within it. Make full use of what your output can render, such as syntax-highlighted code blocks, blockquotes, and bold, so the result is pleasant to read.
 
@@ -78,11 +78,7 @@ const delay = Math.min(exp, cap);
 return delay / 2 + Math.random() * (delay / 2);
 ```
 
-**Overall:** a textbook retry policy, but `attempt` is never reset after a success.
-
----
-**Next?** next · deeper · ask a question · jump to … · stop
-````
+**Overall:** a textbook retry policy, but `attempt` is never reset after a success.````
 
 - **Mark every note with `◆`** right after the comment opener. The author's own comments then stay distinguishable from yours, and you can discuss theirs too.
 - **Use the language's comment syntax**: `//` for C-family, Go, Rust, JS/TS, Java, and Kotlin; `#` for Python, shell, Ruby, YAML, and TOML; `--` for SQL, Haskell, and Lua; `<!-- ◆ … -->` for HTML, XML, and Markdown source; `/* ◆ … */` for CSS; `;` for Lisp and assembly; `%` for LaTeX and Erlang. For formats with no comments, such as JSON, use the `jsonc` tag and `//`.
@@ -104,11 +100,7 @@ Quote the fragment a sentence or clause at a time in blockquotes, which act as t
 
 > Reads may be served by **any replica**, so clients can observe stale values.
 
-📌 *Here is the trade-off: reads skip the quorum for speed and give up the guarantee above.*
-
----
-**Next?** next · deeper · ask a question · jump to … · stop
-```
+📌 *Here is the trade-off: reads skip the quorum for speed and give up the guarantee above.*```
 
 - Say once, at the start of the walk, that the bold emphasis is yours.
 - A sentence with nothing worth saying stays in the quote without a note. Merge it with its neighbour.
@@ -135,18 +127,37 @@ For anything else, such as diffs, logs, math, data, or diagrams, follow the same
 
 ## 4. Wait, then respond
 
-End the turn after the prompt. Don't continue to the next fragment in the same message. The pause is the point of the skill.
+After the fragment, ask where to go next, then wait. Don't continue to the next fragment in the same message. The pause is the point of the skill.
 
-Use a plain-text prompt here, not a structured question dialog. A dialog can cover the explanation the user is trying to read.
+### Offer the choices as native options
 
-Take the user's reply in whatever words they use:
+If your harness has a structured question tool (Claude Code's `AskUserQuestion`, for example), use it. The user can then pick with a keypress instead of typing a command, which is quicker and looks better. Write the fragment out as normal text first, then call the tool in the same turn.
 
-- **next / yes / go on / an empty-ish reply**: present the next fragment.
-- **deeper**: stay on this fragment and go one level down. That might be the history, a worked example, the alternative implementation, or tracing a call into another file. Use the same annotated style, then prompt again.
-- **a question**: answer it in the context of the current fragment, then prompt again. Don't move on until they ask to.
-- **back / jump to X / skip**: go where they ask. Update the fragment count if the route changes.
-- **change of focus**: if the question or scope shifts mid-walk, re-plan the remaining route and show the new route in one or two lines.
-- **stop**: end the walk with the closing below, cut short.
+The dialog may cover what's above it, so make the question self-contained. Name the fragment, and mention that the user can type a question. For example: "Fragment 3 of 9 (Backoff calculation) is done. Where next? You can also pick Other to ask about it." Keep the header chip short, for example `Fragment 3/9`.
+
+Offer these options, at most four:
+
+| Option | Description | When |
+|---|---|---|
+| **Next: ‹next fragment's title›** (Recommended) | What that fragment covers, in a few words | Always, except on the last fragment |
+| **Finish the walk** (Recommended) | Wrap up with a short summary | Last fragment only, in place of Next |
+| **Go deeper** | Stay here and dig one level further | Always |
+| **Back: ‹previous fragment's title›** | Revisit the previous fragment | Leave it out on fragment 1 |
+| **Stop here** | End the walk now, with a brief closing | Always, except on the last fragment |
+
+The tool's built-in free-text choice ("Other") covers everything else: a question about this fragment, jumping to a named fragment, or a change of focus.
+
+If there is no structured question tool, end with a plain-text line instead:
+`**Next?** next · deeper · ask a question · jump to … · stop`
+
+### Act on the choice
+
+- **Next**: present the next fragment.
+- **Go deeper**: stay on this fragment and go one level down. That might be the history, a worked example, the alternative implementation, or tracing a call into another file. Use the same annotated style, then offer the options again.
+- **A question** (typed through Other, or in plain text): answer it in the context of the current fragment, in the same annotated style where that helps. Then offer the options again. Don't move on until they choose to.
+- **Back / jump to X / skip**: go where they ask. Update the fragment count if the route changes.
+- **Change of focus**: if the question or scope shifts mid-walk, re-plan the remaining route and show the new route in one or two lines.
+- **Stop here / Finish the walk**: end the walk with the closing below.
 
 ## 5. Close the walk
 
@@ -154,4 +165,4 @@ After the last fragment, or when the user stops, give a short closing:
 
 - The thread that runs through the fragments, as two to five sentences, tied back to the user's original question.
 - Anything you flagged as questionable along the way, gathered in one place.
-- One or two natural next walks, such as "the caller in `server.ts`" or "§4, which this section sets up". Offer them; don't start one.
+- One or two natural next walks, such as "the caller in `server.ts`" or "§4, which this section sets up". Offer them as options in the structured question tool, along with "Done for now", or as a short list if there is no such tool. Don't start one until the user picks it.
